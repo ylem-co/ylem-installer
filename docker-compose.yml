@@ -1,0 +1,147 @@
+services:
+  ylem:
+    image: "ardemylem/ylem:ylem"
+    entrypoint: ["/opt/ylem/start_ylem.sh"]
+    container_name: ylem
+    ports:
+      - "7332:7332" # Statistics
+      - "7333:7333" # Users
+      - "7336:7336" # Pipelines
+      - "7339:7339" # API
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./.env:/opt/ylem/api/.env
+      - ./.env:/opt/ylem/backend/pipelines/.env
+      - ./.env:/opt/ylem/backend/statistics/.env
+      - ./.env:/opt/ylem/backend/users/.env
+      - ./start_ylem.sh:/opt/ylem/start_ylem.sh
+    networks:
+      - ylem_network
+    depends_on:
+      ylem_database:
+        condition: service_healthy
+      ylem_statistics_database:
+        condition: service_healthy
+
+  ylem_taskrunner:
+    image: "ardemylem/ylem:taskrunner"
+    entrypoint: ["/opt/ylem/start_taskrunner.sh"]
+    container_name: ylem_taskrunner
+    ports:
+      - "7334:7335" # Load balancer
+      - "7335:7335" # Task runner
+      - "7337:7337" # Integrations
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./.env:/opt/ylem/backend/integrations/.env
+      - ./.env:/opt/ylem/processor/taskrunner/.env
+      - ./start_taskrunner.sh:/opt/ylem/start_taskrunner.sh
+    networks:
+      - ylem_network
+    depends_on:
+      ylem_database:
+        condition: service_healthy
+      ylem_statistics_database:
+        condition: service_healthy
+
+  ylem_session_storage:
+    env_file:
+      - .env
+    image: "ardemylem/ylem:session_storage"
+    command: redis-server --requirepass ${YLEM_REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    networks:
+      - ylem_network
+    environment:
+      - REDIS_REPLICATION_MODE=master
+    container_name: ylem_session_storage
+    links:
+      - ylem_database
+    depends_on:
+      ylem_database:
+        condition: service_healthy
+
+  ylem_python_processor:
+    image: "ardemylem/ylem:python_processor"
+    container_name: ylem_python_processor
+    networks:
+      - ylem_network
+    ports:
+      - "7338:7338"
+    stdin_open: true
+    tty: true
+
+  ylem_ui:
+    image: "ardemylem/ylem:ui"
+    container_name: ylem_ui
+    networks:
+      - ylem_network
+    ports:
+      - "7440:7440"
+    stdin_open: true
+
+  ylem_router:
+    image: "ardemylem/ylem:router"
+    container_name: ylem_router
+    networks:
+      - ylem_network
+    depends_on:
+      - ylem
+      - ylem_ui
+    volumes:
+      - ./router-logs:/var/log
+    ports:
+      - "7331:7331"
+      - "443:443"
+
+  ylem_database:
+    image: "ardemylem/ylem:database"
+    command: --init-file=/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - ylem_network
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./database/data:/var/lib/mysql
+    container_name: ylem_database
+    healthcheck:
+      interval: 5s
+      retries: 5
+      test:
+        [
+          "CMD",
+          "healthcheck.sh",
+          "--su-mysql",
+          "--connect",
+          "--innodb_initialized"
+        ]
+      timeout: 5s
+
+  ylem_statistics_database:
+    image: "ardemylem/ylem:statistics_database"
+    networks:
+      - ylem_network
+    ports:
+      - "9000:9000"
+      - "8123:8123"
+    volumes:
+      - ./database/statistics_data:/var/lib/clickhouse
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 262144
+        hard: 262144
+    container_name: ylem_statistics_database
+    healthcheck:
+      interval: 15s
+      retries: 5
+      test: wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1
+      timeout: 15s
+
+networks:
+  ylem_network:
+    name: ylem_network
+    external: false
