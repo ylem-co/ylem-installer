@@ -2,6 +2,8 @@ services:
   ylem:
     image: "ardemylem/ylem:ylem"
     entrypoint: ["/opt/ylem/start_ylem.sh"]
+    env_file:
+      - .env
     container_name: ylem
     ports:
       - "7332:7332" # Statistics
@@ -27,6 +29,8 @@ services:
   ylem_taskrunner:
     image: "ardemylem/ylem:taskrunner"
     entrypoint: ["/opt/ylem/start_taskrunner.sh"]
+    env_file:
+      - .env
     container_name: ylem_taskrunner
     ports:
       - "7334:7335" # Load balancer
@@ -47,9 +51,9 @@ services:
         condition: service_healthy
 
   ylem_session_storage:
+    image: "ardemylem/ylem:session_storage"
     env_file:
       - .env
-    image: "ardemylem/ylem:session_storage"
     command: redis-server --requirepass ${YLEM_REDIS_PASSWORD}
     ports:
       - "6379:6379"
