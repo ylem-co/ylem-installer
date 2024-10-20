@@ -58,3 +58,5 @@ Or
 ``` bash
 docker compose up -d
 ```
+
+Ylem is available at http://localhost:7331/
