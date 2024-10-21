@@ -41,7 +41,7 @@ To be able to work correctly, Ylem requires the following Apache Kafka topics to
 * query_task_run_results
 * notification_task_run_results
 
-## 3. Configure environment variables in the .env file
+## 3. (Optional) Configure environment variables in the .env file
 
 This repository contains `.env` file where you can configure your connection to Apache Kafka and other integrations. 
 
@@ -60,3 +60,7 @@ docker compose up -d
 ```
 
 Ylem is available at http://localhost:7331/
+
+## Using SSH connection for MySQL or PostgreSQL integrations
+
+If you want to use an SSH connection to your MySQL or PostgreSQL database, you need to place your public RSA SSH key called id_rsa.pub in the folder `keys` next to this README file and it will be mounted to the container automatically.

@@ -42,6 +42,8 @@ services:
       - ./.env:/opt/ylem/backend/integrations/.env
       - ./.env:/opt/ylem/processor/taskrunner/.env
       - ./start_taskrunner.sh:/opt/ylem/start_taskrunner.sh
+      - ./keys:/opt/ylem/backend/integrations/config/keys
+      - ./keys:/opt/ylem/processor/taskrunner/config/keys
     networks:
       - ylem_network
     depends_on:
