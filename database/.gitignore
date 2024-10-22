@@ -1,4 +1,6 @@
 data/*
+!data/.gitkeep
 statistics_data/*
-data/!.gitkeep
-statistics_data/!.gitkeep
+!statistics_data/.gitkeep
+kafka_data/*
+!kafka_data/.gitkeep
