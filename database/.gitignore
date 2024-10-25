@@ -4,3 +4,5 @@ statistics_data/*
 !statistics_data/.gitkeep
 kafka_data/*
 !kafka_data/.gitkeep
+session_data/*
+!session_data/.gitkeep

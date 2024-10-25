@@ -65,6 +65,8 @@ services:
     command: redis-server --requirepass ${YLEM_REDIS_PASSWORD}
     ports:
       - "6379:6379"
+    volumes:
+      - ./database/session_data:/data
     networks:
       - ylem_network
     environment:
