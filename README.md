@@ -75,4 +75,4 @@ Now if you run `docker compose up` and everything is set up correctly Ylem shoul
 
 # Using SSH connection for MySQL or PostgreSQL integrations
 
-If you want to use an SSH connection to your MySQL or PostgreSQL database, you need to place your public RSA SSH key called id_rsa.pub in the folder `keys` next to this README file and it will be mounted to the container automatically.
+If you want to use an SSH connection to your MySQL or PostgreSQL database, you need to place your privte RSA SSH key called `id_rsa` in the folder `keys` next to this README file and it will be mounted to the container automatically.
